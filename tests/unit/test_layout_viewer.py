@@ -31,27 +31,18 @@ from unittest.mock import Mock
 
 from ansys.edb.core.geometry.point_data import PointData
 from ansys.edb.core.utility.value import Value as CoreValue
+from layout_viewer.camera import Camera
+from layout_viewer.mesh import prepare_scene, split_coordinates
+from layout_viewer.picking import PickIndex, inspector_rows
 import numpy as np
 import pytest
 
+from layout_viewer import LayoutScene, SceneComponent, SceneLayer, SceneObjectInfo, ScenePad, ScenePolygon, SceneTrace
 from pyedb.generic.geometry_operators import GeometryOperators
 from pyedb.grpc.database.primitive.primitive import Primitive
-from pyedb.viewer import (
-    LayoutScene,
-    SceneComponent,
-    SceneLayer,
-    SceneObjectInfo,
-    ScenePad,
-    ScenePolygon,
-    SceneTrace,
-    launch_viewer,
-    scene_from_edb,
-)
+from pyedb.viewer import launch_viewer, scene_from_edb
 from pyedb.viewer.adapters import grpc_stream
 from pyedb.viewer.adapters.grpc_stream import centerline_length
-from pyedb.viewer.camera import Camera
-from pyedb.viewer.mesh import prepare_scene, split_coordinates
-from pyedb.viewer.picking import PickIndex, inspector_rows
 
 pytestmark = [pytest.mark.unit, pytest.mark.no_licence, pytest.mark.grpc]
 
@@ -352,11 +343,10 @@ def _hole_only(geom_type, params):
 def window():
     pytest.importorskip("PySide6")
     pytest.importorskip("mapbox_earcut")
+    from layout_viewer.demo import demo_scene
+    from layout_viewer.qt.window import LayoutWindow
     from PySide6.QtTest import QTest
     from PySide6.QtWidgets import QApplication
-
-    from pyedb.viewer.demo import demo_scene
-    from pyedb.viewer.qt.window import LayoutWindow
 
     app = QApplication.instance() or QApplication([])
     window = LayoutWindow(demo_scene())
@@ -427,7 +417,7 @@ class TestSceneModel:
 
     def test_scene_import_does_not_load_optional_gui_or_triangulator(self):
         code = (
-            "import sys; import pyedb.viewer; "
+            "import sys; import pyedb.viewer, layout_viewer; "
             "assert not any(x in sys.modules for x in ('PySide6', 'OpenGL', 'mapbox_earcut'))"
         )
         result = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True)
@@ -710,8 +700,8 @@ class TestGrpcAdapter:
         assert path.polygon_data.reads == 1
 
     def test_each_viewer_capture_reads_the_current_source_and_releases_it(self):
-        from pyedb.viewer.capture import SourceCapture
-        from pyedb.viewer.demo import demo_scene
+        from layout_viewer.capture import SourceCapture
+        from layout_viewer.demo import demo_scene
 
         first_scene, second_scene = demo_scene(), LayoutScene((), (), "Changed source")
         load = Mock(side_effect=[first_scene, second_scene])
@@ -1554,7 +1544,7 @@ class TestMeshPreparation:
         assert batch.net == "GND"
 
     def test_preparation_progress_preserves_gpu_buffers_and_completes_each_stage(self):
-        from pyedb.viewer.demo import demo_scene
+        from layout_viewer.demo import demo_scene
 
         scene = demo_scene()
         events = []
@@ -1589,12 +1579,15 @@ class TestMeshPreparation:
         assert scene.bounds[2] > offset + 5
 
     def test_net_colors_use_pyedb_palette_and_stay_stable_when_filtering(self):
+        from layout_viewer.colors import NET_COLORS, net_color
+
         from pyedb.generic.constants import CSS4_COLORS
-        from pyedb.viewer.colors import NET_COLORS, net_color
 
         assert tuple(round(v * 255) for v in net_color(1)) == (0xD2, 0x69, 0x1E)
         assert net_color(0) is None
-        assert len(NET_COLORS) == len(CSS4_COLORS)
+        assert NET_COLORS == tuple(
+            tuple(int(value[i : i + 2], 16) / 255 for i in (1, 3, 5)) for value in CSS4_COLORS.values()
+        )
         assert net_color(len(NET_COLORS) + 1) == net_color(1)
         edb = _edb([_primitive(net="SIGNAL")])
         edb.nets.nets = {"GND": None, "SIGNAL": None, "OTHER": None}
@@ -1662,10 +1655,9 @@ class TestMeshPreparation:
 
     @pytest.mark.grpc
     def test_bulk_pad_packets_match_scalar_precision_shapes_drills_and_networks(self):
+        from layout_viewer.mesh import SDF_STRIDE, _sdf_packet, _write_pad_packets
+        from layout_viewer.scene import ScenePad
         import numpy as np
-
-        from pyedb.viewer.mesh import SDF_STRIDE, _sdf_packet, _write_pad_packets
-        from pyedb.viewer.scene import ScenePad
 
         rng = np.random.default_rng(42)
         items = []
@@ -1698,7 +1690,7 @@ class TestMeshPreparation:
 
 class TestPicking:
     def test_interaction_colors_are_reserved_and_visible_on_white(self):
-        from pyedb.viewer.colors import HIGHLIGHT_KEYLINE_COLOR, HOVER_COLOR, NET_COLORS, SELECTION_COLOR
+        from layout_viewer.colors import HIGHLIGHT_KEYLINE_COLOR, HOVER_COLOR, NET_COLORS, SELECTION_COLOR
 
         assert HOVER_COLOR != SELECTION_COLOR
         for color in (HOVER_COLOR, SELECTION_COLOR, HIGHLIGHT_KEYLINE_COLOR):
@@ -1902,10 +1894,9 @@ class TestWindowApi:
 
     def test_selection_before_display_is_rejected(self):
         pytest.importorskip("PySide6")
+        from layout_viewer.demo import demo_scene
+        from layout_viewer.qt.canvas import LayoutView
         from PySide6.QtWidgets import QApplication
-
-        from pyedb.viewer.demo import demo_scene
-        from pyedb.viewer.qt.canvas import LayoutView
 
         QApplication.instance() or QApplication([])
         view = LayoutView(demo_scene())
@@ -1930,7 +1921,7 @@ class TestCliAndTheme:
 
     def test_workspace_theme_has_readable_text_and_interaction_contrast(self):
         pytest.importorskip("PySide6")
-        from pyedb.viewer.qt.theme import COLORS
+        from layout_viewer.qt.theme import COLORS
 
         def luminance(hex_color):
             rgb = [int(hex_color[i : i + 2], 16) / 255 for i in (1, 3, 5)]

@@ -32,13 +32,13 @@ import numpy as np
 from PySide6.QtCore import QRectF, Qt
 from PySide6.QtGui import QColor, QFont, QImage, QPainter, QPainterPath, QPen, QRhi, QRhiBuffer, QRhiTexture
 
-from pyedb.viewer.colors import COMPONENT_OUTLINE_COLOR
-from pyedb.viewer.mesh import split_coordinates
+from layout_viewer.colors import COMPONENT_OUTLINE_COLOR
+from layout_viewer.mesh import split_coordinates
 
 if TYPE_CHECKING:
-    from pyedb.viewer.camera import Camera
-    from pyedb.viewer.mesh import ComponentBatch
-    from pyedb.viewer.scene import SceneComponent
+    from layout_viewer.camera import Camera
+    from layout_viewer.mesh import ComponentBatch
+    from layout_viewer.scene import SceneComponent
 
 
 class ComponentLabels:

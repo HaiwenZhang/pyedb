@@ -8,13 +8,14 @@ from threading import Event, Thread
 from types import SimpleNamespace
 from unittest.mock import Mock
 
+from layout_viewer.capture import SourceCapture
 import pytest
 
+from layout_viewer import LayoutScene, SceneLayer, ScenePolygon
 from pyedb.grpc.database.layout_changes import layout_changes, layout_mutation, layout_session_close
 from pyedb.grpc.database.modeler import Modeler
 from pyedb.grpc.database.primitive.primitive import Primitive
-from pyedb.viewer import LayoutScene, SceneLayer, ScenePolygon, launch_viewer
-from pyedb.viewer.capture import SourceCapture
+from pyedb.viewer import launch_viewer
 
 pytestmark = [pytest.mark.unit, pytest.mark.grpc, pytest.mark.no_licence]
 
@@ -40,9 +41,8 @@ def wait_until(predicate):
 def live_window():
     pytest.importorskip("PySide6")
     pytest.importorskip("mapbox_earcut")
+    from layout_viewer.qt.window import LayoutWindow
     from PySide6.QtWidgets import QApplication
-
-    from pyedb.viewer.qt.window import LayoutWindow
 
     app = QApplication.instance() or QApplication([])
     source = SimpleNamespace(current=scene(1), calls=0)
@@ -280,7 +280,7 @@ class TestLiveWindow:
 
     def test_edits_during_preparation_are_not_lost(self, live_window, monkeypatch):
         window, source, changes = live_window
-        import pyedb.viewer.qt.window as module
+        import layout_viewer.qt.window as module
 
         original = module.prepare_scene
         entered, release = Event(), Event()
@@ -415,7 +415,7 @@ class TestLiveWindow:
 def test_launch_forwards_live_options_and_manual_refresh_source(monkeypatch):
     pytest.importorskip("PySide6")
     show = Mock()
-    monkeypatch.setattr("pyedb.viewer.qt.app.show_scene", show)
+    monkeypatch.setattr("layout_viewer.qt.app.show_scene", show)
     edb = SimpleNamespace(edbpath="board.aedb")
     launch_viewer(edb, live=True, refresh_interval=80, layers="TOP", nets="GND")
     assert show.call_args.kwargs["live"] is True

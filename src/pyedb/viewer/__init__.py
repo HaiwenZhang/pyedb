@@ -20,40 +20,20 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-"""Optional interactive layout viewer. Importing this module does not load Qt."""
+"""EDB integration for the layout viewer. Importing this module does not load Qt.
+
+Scene types and the Qt frontend live in the separate ``layout_viewer`` package.
+"""
 
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, Callable
 
-from pyedb.viewer.picking import PickedObject
-from pyedb.viewer.scene import (
-    LayoutScene,
-    SceneComponent,
-    SceneJoin,
-    SceneLayer,
-    SceneObjectInfo,
-    ScenePad,
-    ScenePolygon,
-    SceneTrace,
-)
-
 if TYPE_CHECKING:
-    from pyedb.viewer.qt.window import LayoutWindow
+    from layout_viewer.qt.window import LayoutWindow
+    from layout_viewer.scene import LayoutScene
 
-__all__ = [
-    "LayoutScene",
-    "PickedObject",
-    "SceneComponent",
-    "SceneLayer",
-    "SceneObjectInfo",
-    "ScenePad",
-    "ScenePolygon",
-    "SceneTrace",
-    "SceneJoin",
-    "launch_viewer",
-    "scene_from_edb",
-]
+__all__ = ["launch_viewer", "scene_from_edb"]
 
 
 def scene_from_edb(
@@ -175,7 +155,7 @@ def launch_viewer(
 
     Returns
     -------
-    pyedb.viewer.qt.window.LayoutWindow
+    layout_viewer.qt.window.LayoutWindow
         Viewer window. Keep a reference when displaying the window without
         blocking. Use its signals and methods to interact with the view.
     """
@@ -186,15 +166,16 @@ def launch_viewer(
     if isinstance(refresh_interval, bool) or not isinstance(refresh_interval, int) or refresh_interval < 0:
         raise ValueError("refresh_interval must be a nonnegative integer in milliseconds.")
     try:
-        from pyedb.viewer.qt.app import show_scene
+        from layout_viewer.qt.app import show_scene
     except ImportError as exc:
         raise ImportError("The layout viewer requires optional dependencies: pip install 'pyedb[viewer]'.") from exc
     options: dict[str, Any] = {}
     if scene is None:
         from pathlib import Path
 
+        from layout_viewer.capture import SourceCapture
+
         from pyedb.grpc.database.layout_changes import layout_changes
-        from pyedb.viewer.capture import SourceCapture
 
         def load(
             progress: Callable[[str, int, int], None] | None, preview: Callable[..., Any] | None = None

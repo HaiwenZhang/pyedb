@@ -10,6 +10,12 @@ on the GPU during navigation and display changes.
 Install and launch
 ------------------
 
+The viewer has two parts. The ``layout-viewer`` distribution (import name
+``layout_viewer``) contains the EDB-independent frontend: scene types such as
+``LayoutScene`` and ``PickedObject``, meshing, and the Qt window ``LayoutWindow``.
+``pyedb.viewer`` captures EDB sessions into scenes and provides ``launch_viewer``,
+``scene_from_edb`` and the command line below. The ``viewer`` extra installs both.
+
 .. code-block:: console
 
    pip install "pyedb[viewer]"
@@ -378,35 +384,38 @@ desktop validation on the target machines.
 Development and rendering tests
 -------------------------------
 
-Shader sources (``.vert``, ``.frag`` and ``.glsl``) are version-controlled;
-generated ``.qsb`` packs are ignored by Git. The PEP 517 build backend compiles
+Shader sources (``.vert``, ``.frag`` and ``.glsl``) are version-controlled in
+``src/layout_viewer/src/layout_viewer/qt/shaders``; generated ``.qsb`` packs are
+ignored by Git. The ``layout-viewer`` PEP 517 build backend compiles
 fresh packs in a temporary staging tree when building a wheel, then delegates
 the Python packaging to Flit. Building a wheel does not change the checkout.
 An sdist contains the sources and build helpers, and compiles the packs when
 it is converted into a wheel. Installing and running a built wheel never
-invokes a shader compiler.
+invokes a shader compiler. The ``pyedb`` distribution itself contains no shaders.
 
-Build both distribution formats with a standard frontend:
+Build both distribution formats of the frontend with a standard frontend:
 
 .. code-block:: console
 
    python -m pip install build
-   python -m build
+   python -m build src/layout_viewer
 
 Build isolation installs PySide6 as a build dependency to obtain its Qt Shader
-Baker executable. It remains an optional ``viewer`` dependency at runtime.
+Baker executable.
 Build services with an existing Qt toolchain may set ``PYEDB_QSB`` to the full
 path of a compatible ``qsb`` executable instead. Metadata generation and
 source-archive creation do not need Qt. Use a PEP 517 frontend such as
 ``python -m build``, ``pip wheel`` or ``uv build`` so the compilation hook runs.
 
-Editable installs (``pip install -e ".[viewer]"``) generate ignored local packs
-beside the source files. After editing shader sources in an editable checkout,
-refresh those local packs with:
+In a PyEDB checkout, ``uv sync --extra viewer`` installs ``layout-viewer`` from
+``src/layout_viewer`` in editable mode, which generates ignored local packs
+beside the source files. With pip, run ``pip install -e src/layout_viewer``
+before ``pip install -e ".[viewer]"``. After editing shader sources in an
+editable checkout, refresh those local packs with:
 
 .. code-block:: console
 
-   python tools/bake_viewer_shaders.py
+   python src/layout_viewer/tools/bake_viewer_shaders.py
 
 Enable the desktop pixel and interaction regression tests:
 

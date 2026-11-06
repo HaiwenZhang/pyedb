@@ -11,7 +11,7 @@ from typing import Any, Collection, Sequence
 
 import numpy as np
 
-from pyedb.viewer.scene import (
+from layout_viewer.scene import (
     LayoutScene,
     Point,
     SceneJoin,

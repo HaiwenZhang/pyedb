@@ -21,12 +21,12 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from pyedb.viewer.picking import inspector_rows
-from pyedb.viewer.qt.icons import workspace_icon
-from pyedb.viewer.qt.theme import COLORS
+from layout_viewer.picking import inspector_rows
+from layout_viewer.qt.icons import workspace_icon
+from layout_viewer.qt.theme import COLORS
 
 if TYPE_CHECKING:
-    from pyedb.viewer.picking import PickHit
+    from layout_viewer.picking import PickHit
 
 
 class ObjectInspector(QFrame):

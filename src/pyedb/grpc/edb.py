@@ -1485,7 +1485,7 @@ class Edb(EdbInit):
 
         Returns
         -------
-        pyedb.viewer.qt.window.LayoutWindow
+        layout_viewer.qt.window.LayoutWindow
             Viewer window. Keep a reference when using non-blocking mode. Its
             signals (``object_selected``, ``selection_cleared``, ``object_hovered``,
             ``net_changed``, ``visible_layers_changed``) report user interaction, and

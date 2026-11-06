@@ -62,8 +62,9 @@ def test_live_edits_refresh_gpu_pixels_and_picking_in_the_same_window(monkeypatc
     from PySide6.QtTest import QTest
     from PySide6.QtWidgets import QApplication
 
+    from layout_viewer import LayoutScene, SceneLayer, ScenePolygon
     from pyedb.grpc.database.layout_changes import layout_mutation
-    from pyedb.viewer import LayoutScene, SceneLayer, ScenePolygon, launch_viewer
+    from pyedb.viewer import launch_viewer
 
     app = QApplication.instance() or QApplication([])
     layers = (SceneLayer("TOP", (1, 0, 0, 1)),)
@@ -138,12 +139,12 @@ def test_live_edits_refresh_gpu_pixels_and_picking_in_the_same_window(monkeypatc
 def test_large_board_object_deltas_upload_only_changed_geometry():
     from unittest.mock import Mock
 
+    from layout_viewer.mesh import prepare_scene
     from PySide6.QtTest import QTest
     from PySide6.QtWidgets import QApplication
 
     from pyedb.grpc.database.primitive.primitive import Primitive
     from pyedb.viewer import launch_viewer
-    from pyedb.viewer.mesh import prepare_scene
     from tests.unit.test_layout_viewer import _edb, _primitive, _value
 
     app = QApplication.instance() or QApplication([])
@@ -239,13 +240,13 @@ class TestLoading:
     def test_mesh_preparation_overlaps_source_reads_and_finishes_before_final_snapshot(self, monkeypatch):
         import threading
 
+        from layout_viewer.capture import SourceCapture
+        from layout_viewer.qt import window as window_module
+        from layout_viewer.qt.app import show_scene
         from PySide6.QtTest import QTest
         from PySide6.QtWidgets import QApplication
 
-        from pyedb.viewer import LayoutScene, SceneLayer, ScenePolygon
-        from pyedb.viewer.capture import SourceCapture
-        from pyedb.viewer.qt import window as window_module
-        from pyedb.viewer.qt.app import show_scene
+        from layout_viewer import LayoutScene, SceneLayer, ScenePolygon
 
         app = QApplication.instance() or QApplication([])
         layers = (SceneLayer("TOP", (1, 0, 0, 1)), SceneLayer("BOTTOM", (0, 0, 1, 1)))
@@ -292,12 +293,11 @@ class TestLoading:
             app.processEvents()
 
     def test_async_preview_failure_is_reported_after_source_release(self, monkeypatch):
+        from layout_viewer.capture import SourceCapture
+        from layout_viewer.demo import demo_scene
+        from layout_viewer.qt import window as window_module
+        from layout_viewer.qt.app import show_scene
         from PySide6.QtWidgets import QApplication
-
-        from pyedb.viewer.capture import SourceCapture
-        from pyedb.viewer.demo import demo_scene
-        from pyedb.viewer.qt import window as window_module
-        from pyedb.viewer.qt.app import show_scene
 
         app = QApplication.instance() or QApplication([])
         scene = demo_scene()
@@ -319,13 +319,12 @@ class TestLoading:
     def test_loading_progress_keeps_event_loop_live_and_propagates_errors(self):
         import threading
 
+        from layout_viewer.demo import demo_scene
+        from layout_viewer.qt.app import show_scene
+        from layout_viewer.qt.loading import LoadingPanel
+        from layout_viewer.qt.window import LayoutWindow
         from PySide6.QtCore import QTimer
         from PySide6.QtWidgets import QApplication, QDialog
-
-        from pyedb.viewer.demo import demo_scene
-        from pyedb.viewer.qt.app import show_scene
-        from pyedb.viewer.qt.loading import LoadingPanel
-        from pyedb.viewer.qt.window import LayoutWindow
 
         app = QApplication.instance() or QApplication([])
         heartbeat = threading.Event()
@@ -386,8 +385,8 @@ class TestLoading:
         from PySide6.QtCore import QTimer, QMetaObject, QObject, Slot, Qt
         from PySide6.QtWidgets import QApplication
         import pyedb.viewer as viewer
-        from pyedb.viewer.demo import demo_scene
-        from pyedb.viewer.qt.window import LayoutWindow
+        from layout_viewer.demo import demo_scene
+        from layout_viewer.qt.window import LayoutWindow
 
         ticks = []
         def finish():
@@ -414,14 +413,14 @@ class TestLoading:
     def test_progressive_loading_displays_copper_before_completion_and_preserves_view(self):
         import threading
 
+        from layout_viewer.capture import SourceCapture
+        from layout_viewer.qt.app import show_scene
+        from layout_viewer.qt.window import LayoutWindow
         from PySide6.QtCore import QTimer
         from PySide6.QtTest import QTest
         from PySide6.QtWidgets import QApplication
 
-        from pyedb.viewer import LayoutScene, SceneLayer, ScenePad, ScenePolygon
-        from pyedb.viewer.capture import SourceCapture
-        from pyedb.viewer.qt.app import show_scene
-        from pyedb.viewer.qt.window import LayoutWindow
+        from layout_viewer import LayoutScene, SceneLayer, ScenePad, ScenePolygon
 
         app = QApplication.instance() or QApplication([])
         layers = (SceneLayer("TOP", (1, 0, 0, 1)),)
@@ -487,13 +486,13 @@ class TestLoading:
     def test_progressive_mesh_append_uploads_only_new_tail_data(self, monkeypatch):
         from unittest.mock import Mock
 
+        from layout_viewer.mesh import prepare_scene
+        from layout_viewer.qt import rhi
+        from layout_viewer.qt.canvas import LayoutView
         from PySide6.QtTest import QTest
         from PySide6.QtWidgets import QApplication
 
-        from pyedb.viewer import LayoutScene, SceneLayer, ScenePolygon
-        from pyedb.viewer.mesh import prepare_scene
-        from pyedb.viewer.qt import rhi
-        from pyedb.viewer.qt.canvas import LayoutView
+        from layout_viewer import LayoutScene, SceneLayer, ScenePolygon
 
         layers = (SceneLayer("TOP", (1, 0, 0, 1)),)
         first = ScenePolygon(1, "TOP", "A", ((0, 0), (2, 0), (2, 2), (0, 2)))
@@ -535,13 +534,13 @@ class TestLoading:
 
 class TestRendering:
     def test_solid_polygon_network_colors_share_one_draw_across_interleaved_source_layers(self):
+        from layout_viewer.colors import net_color
+        from layout_viewer.mesh import prepare_scene
+        from layout_viewer.qt.canvas import LayoutView
         from PySide6.QtTest import QTest
         from PySide6.QtWidgets import QApplication
 
-        from pyedb.viewer import LayoutScene, SceneLayer, ScenePolygon
-        from pyedb.viewer.colors import net_color
-        from pyedb.viewer.mesh import prepare_scene
-        from pyedb.viewer.qt.canvas import LayoutView
+        from layout_viewer import LayoutScene, SceneLayer, ScenePolygon
 
         def rect(left, right):
             return ((left, -2), (right, -2), (right, 2), (left, 2))
@@ -581,12 +580,12 @@ class TestRendering:
     def test_stencil_hole_union_and_resident_geometry(self, offset, span):
         pytest.importorskip("PySide6")
         pytest.importorskip("mapbox_earcut")
+        from layout_viewer.mesh import prepare_scene
+        from layout_viewer.qt.canvas import LayoutView
         from PySide6.QtTest import QTest
         from PySide6.QtWidgets import QApplication
 
-        from pyedb.viewer import LayoutScene, SceneLayer, ScenePolygon
-        from pyedb.viewer.mesh import prepare_scene
-        from pyedb.viewer.qt.canvas import LayoutView
+        from layout_viewer import LayoutScene, SceneLayer, ScenePolygon
 
         def rect(x0, y0, x1, y1):
             return tuple(
@@ -661,13 +660,13 @@ class TestRendering:
     def test_drill_only_layer_remains_visible_without_other_geometry_or_net_matches(self, color_by_net, monkeypatch):
         from unittest.mock import Mock
 
+        from layout_viewer.mesh import prepare_scene
+        from layout_viewer.qt import rhi
+        from layout_viewer.qt.canvas import LayoutView
         from PySide6.QtTest import QTest
         from PySide6.QtWidgets import QApplication
 
-        from pyedb.viewer import LayoutScene, SceneLayer, ScenePad
-        from pyedb.viewer.mesh import prepare_scene
-        from pyedb.viewer.qt import rhi
-        from pyedb.viewer.qt.canvas import LayoutView
+        from layout_viewer import LayoutScene, SceneLayer, ScenePad
 
         scene = LayoutScene(
             tuple(SceneLayer(name, (1, 0, 0, 1)) for name in ("TOP", "INNER", "BOTTOM", "OUTSIDE")),
@@ -734,13 +733,13 @@ class TestRendering:
         pytest.importorskip("PySide6")
         from unittest.mock import Mock
 
+        from layout_viewer.mesh import prepare_scene
+        from layout_viewer.qt import rhi
+        from layout_viewer.qt.canvas import LayoutView
         from PySide6.QtTest import QTest
         from PySide6.QtWidgets import QApplication
 
-        from pyedb.viewer import LayoutScene, SceneLayer, ScenePad, ScenePolygon, SceneTrace
-        from pyedb.viewer.mesh import prepare_scene
-        from pyedb.viewer.qt import rhi
-        from pyedb.viewer.qt.canvas import LayoutView
+        from layout_viewer import LayoutScene, SceneLayer, ScenePad, ScenePolygon, SceneTrace
 
         def point(x, y):
             return offset + x * unit, -offset + y * unit
@@ -803,7 +802,7 @@ class TestRendering:
             monkeypatch.setattr(rhi, "allocate_geometry_buffer", buffer_data)
             monkeypatch.setattr(rhi, "upload_geometry_buffer", buffer_sub_data)
 
-            from pyedb.viewer.colors import net_color
+            from layout_viewer.colors import net_color
 
             view.color_by_net = True
             frame = view.grabFramebuffer()
@@ -858,12 +857,12 @@ class TestRendering:
         import math
 
         pytest.importorskip("PySide6")
+        from layout_viewer.mesh import prepare_scene
+        from layout_viewer.qt.canvas import LayoutView
         from PySide6.QtTest import QTest
         from PySide6.QtWidgets import QApplication
 
-        from pyedb.viewer import LayoutScene, SceneJoin, SceneLayer, SceneTrace
-        from pyedb.viewer.mesh import prepare_scene
-        from pyedb.viewer.qt.canvas import LayoutView
+        from layout_viewer import LayoutScene, SceneJoin, SceneLayer, SceneTrace
 
         angle = sweep * math.pi
         scene = LayoutScene(
@@ -911,14 +910,14 @@ class TestRendering:
     def test_white_canvas_and_same_layer_zone_trace_pad_transparency(self, monkeypatch):
         from unittest.mock import Mock
 
+        from layout_viewer.colors import net_color
+        from layout_viewer.mesh import prepare_scene
+        from layout_viewer.qt import rhi
+        from layout_viewer.qt.canvas import LayoutView
         from PySide6.QtTest import QTest
         from PySide6.QtWidgets import QApplication
 
-        from pyedb.viewer import LayoutScene, SceneLayer, ScenePad, ScenePolygon, SceneTrace
-        from pyedb.viewer.colors import net_color
-        from pyedb.viewer.mesh import prepare_scene
-        from pyedb.viewer.qt import rhi
-        from pyedb.viewer.qt.canvas import LayoutView
+        from layout_viewer import LayoutScene, SceneLayer, ScenePad, ScenePolygon, SceneTrace
 
         scene = LayoutScene(
             (SceneLayer("copper", (0, 0, 1, 1)),),
@@ -975,14 +974,14 @@ class TestRendering:
     def test_all_shape_outlines_use_opaque_net_colors(self, opacity, color_by_net, monkeypatch):
         from unittest.mock import Mock
 
+        from layout_viewer.colors import net_color
+        from layout_viewer.mesh import prepare_scene
+        from layout_viewer.qt import rhi
+        from layout_viewer.qt.canvas import LayoutView
         from PySide6.QtTest import QTest
         from PySide6.QtWidgets import QApplication
 
-        from pyedb.viewer import LayoutScene, SceneLayer, ScenePad, ScenePolygon, SceneTrace
-        from pyedb.viewer.colors import net_color
-        from pyedb.viewer.mesh import prepare_scene
-        from pyedb.viewer.qt import rhi
-        from pyedb.viewer.qt.canvas import LayoutView
+        from layout_viewer import LayoutScene, SceneLayer, ScenePad, ScenePolygon, SceneTrace
 
         scene = LayoutScene(
             (SceneLayer("copper", (0.9, 0.6, 0.2, 1)),),
@@ -1060,13 +1059,13 @@ class TestRendering:
     def test_shader_grid_is_world_anchored_and_uses_no_navigation_uploads(self, monkeypatch):
         from unittest.mock import Mock
 
+        from layout_viewer.mesh import prepare_scene
+        from layout_viewer.qt import rhi
+        from layout_viewer.qt.canvas import LayoutView
         from PySide6.QtTest import QTest
         from PySide6.QtWidgets import QApplication
 
-        from pyedb.viewer import LayoutScene, SceneLayer
-        from pyedb.viewer.mesh import prepare_scene
-        from pyedb.viewer.qt import rhi
-        from pyedb.viewer.qt.canvas import LayoutView
+        from layout_viewer import LayoutScene, SceneLayer
 
         app = QApplication.instance() or QApplication([])
         scene = LayoutScene((SceneLayer("metal", (1, 0, 0, 1)),), ())
@@ -1123,13 +1122,13 @@ class TestComponentRendering:
         """Component overlays and text must share filtering and keep GPU data resident."""
         from unittest.mock import Mock
 
+        from layout_viewer.mesh import prepare_scene
+        from layout_viewer.qt import rhi
+        from layout_viewer.qt.canvas import LayoutView
         from PySide6.QtTest import QTest
         from PySide6.QtWidgets import QApplication
 
-        from pyedb.viewer import LayoutScene, SceneComponent, SceneLayer, ScenePolygon
-        from pyedb.viewer.mesh import prepare_scene
-        from pyedb.viewer.qt import rhi
-        from pyedb.viewer.qt.canvas import LayoutView
+        from layout_viewer import LayoutScene, SceneComponent, SceneLayer, ScenePolygon
 
         layers = (SceneLayer("TOP", (1, 0, 0, 1)), SceneLayer("BOTTOM", (0, 0, 1, 1)))
         ring = ((-10, -5), (10, -5), (10, 5), (-10, 5))
@@ -1252,13 +1251,13 @@ class TestComponentRendering:
         """Component annotations must not add borders or remove physical pin copper."""
         from unittest.mock import Mock
 
+        from layout_viewer.mesh import prepare_scene
+        from layout_viewer.qt import rhi
+        from layout_viewer.qt.canvas import LayoutView
         from PySide6.QtTest import QTest
         from PySide6.QtWidgets import QApplication
 
-        from pyedb.viewer import LayoutScene, SceneComponent, SceneLayer, ScenePad, ScenePolygon
-        from pyedb.viewer.mesh import prepare_scene
-        from pyedb.viewer.qt import rhi
-        from pyedb.viewer.qt.canvas import LayoutView
+        from layout_viewer import LayoutScene, SceneComponent, SceneLayer, ScenePad, ScenePolygon
 
         layers = (SceneLayer("TOP", (1, 0, 0, 1)), SceneLayer("BOTTOM", (0, 0, 1, 1)))
         plane = ((-10, -6), (10, -6), (10, 6), (-10, 6))
@@ -1352,12 +1351,12 @@ class TestComponentRendering:
 
     def test_custom_pin_voids_use_copper_stencil_without_extra_outlines(self):
         """Custom pin fill and overlapping holes remain intact without an annotation pass."""
+        from layout_viewer.mesh import prepare_scene
+        from layout_viewer.qt.canvas import LayoutView
         from PySide6.QtTest import QTest
         from PySide6.QtWidgets import QApplication
 
-        from pyedb.viewer import LayoutScene, SceneLayer, ScenePolygon
-        from pyedb.viewer.mesh import prepare_scene
-        from pyedb.viewer.qt.canvas import LayoutView
+        from layout_viewer import LayoutScene, SceneLayer, ScenePolygon
 
         def rectangle(x0, y0, x1, y1):
             return ((x0, y0), (x1, y0), (x1, y1), (x0, y1))
@@ -1407,12 +1406,12 @@ class TestComponentRendering:
             app.processEvents()
 
     def test_both_sides_prioritize_current_face_when_reference_labels_overlap(self):
+        from layout_viewer.mesh import prepare_scene
+        from layout_viewer.qt.canvas import LayoutView
         from PySide6.QtTest import QTest
         from PySide6.QtWidgets import QApplication
 
-        from pyedb.viewer import LayoutScene, SceneComponent, SceneLayer
-        from pyedb.viewer.mesh import prepare_scene
-        from pyedb.viewer.qt.canvas import LayoutView
+        from layout_viewer import LayoutScene, SceneComponent, SceneLayer
 
         scene = LayoutScene(
             (SceneLayer("copper_a", (1, 0, 0, 1)), SceneLayer("copper_b", (0, 0, 1, 1))),
@@ -1445,12 +1444,12 @@ class TestComponentRendering:
             app.processEvents()
 
     def test_component_frame_uses_reference_copper_color_without_white_halo(self):
+        from layout_viewer.mesh import prepare_scene
+        from layout_viewer.qt.canvas import LayoutView
         from PySide6.QtTest import QTest
         from PySide6.QtWidgets import QApplication
 
-        from pyedb.viewer import LayoutScene, SceneComponent, SceneLayer
-        from pyedb.viewer.mesh import prepare_scene
-        from pyedb.viewer.qt.canvas import LayoutView
+        from layout_viewer import LayoutScene, SceneComponent, SceneLayer
 
         app = QApplication.instance() or QApplication([])
         scene = LayoutScene(
@@ -1483,12 +1482,12 @@ class TestWindowControls:
         pytest.importorskip("mapbox_earcut")
         import time
 
+        from layout_viewer.demo import demo_scene
         from PySide6.QtCore import Qt
         from PySide6.QtTest import QTest
         from PySide6.QtWidgets import QApplication
 
         from pyedb.viewer import launch_viewer
-        from pyedb.viewer.demo import demo_scene
 
         app = QApplication.instance() or QApplication([])
         window = launch_viewer(scene=demo_scene())
@@ -1538,13 +1537,13 @@ class TestWindowControls:
     @pytest.mark.parametrize("button_name", ["LeftButton", "MiddleButton", "RightButton"])
     @pytest.mark.parametrize("mirror", [False, True])
     def test_mouse_drag_pans_canvas_and_keeps_geometry_resident(self, button_name, mirror):
+        from layout_viewer.mesh import prepare_scene
+        from layout_viewer.qt.canvas import LayoutView
         from PySide6.QtCore import QPoint, Qt
         from PySide6.QtTest import QTest
         from PySide6.QtWidgets import QApplication
 
-        from pyedb.viewer import LayoutScene, SceneLayer, ScenePolygon
-        from pyedb.viewer.mesh import prepare_scene
-        from pyedb.viewer.qt.canvas import LayoutView
+        from layout_viewer import LayoutScene, SceneLayer, ScenePolygon
 
         scene = LayoutScene(
             (SceneLayer("TOP", (1, 0, 0, 1)),),
@@ -1589,13 +1588,13 @@ class TestWindowControls:
     def test_navigation_capsule_defaults_and_controls_keep_geometry_resident(self, monkeypatch):
         from unittest.mock import Mock
 
+        from layout_viewer.demo import demo_scene
+        from layout_viewer.qt import rhi
         from PySide6.QtCore import QPoint, Qt
         from PySide6.QtTest import QTest
         from PySide6.QtWidgets import QApplication
 
         from pyedb.viewer import launch_viewer
-        from pyedb.viewer.demo import demo_scene
-        from pyedb.viewer.qt import rhi
 
         app = QApplication.instance() or QApplication([])
         window = launch_viewer(scene=demo_scene(), block=False)
@@ -1657,7 +1656,8 @@ class TestWindowControls:
         from PySide6.QtTest import QTest
         from PySide6.QtWidgets import QApplication
 
-        from pyedb.viewer import LayoutScene, SceneLayer, ScenePolygon, launch_viewer
+        from layout_viewer import LayoutScene, SceneLayer, ScenePolygon
+        from pyedb.viewer import launch_viewer
 
         scene = (
             LayoutScene((), ())
@@ -1695,12 +1695,13 @@ class TestWindowControls:
         """Bulk selection synchronizes the list in one repaint, without new GPU uploads."""
         from unittest.mock import Mock
 
+        from layout_viewer.qt import rhi
         from PySide6.QtCore import Qt
         from PySide6.QtTest import QTest
         from PySide6.QtWidgets import QApplication
 
-        from pyedb.viewer import LayoutScene, SceneLayer, ScenePolygon, launch_viewer
-        from pyedb.viewer.qt import rhi
+        from layout_viewer import LayoutScene, SceneLayer, ScenePolygon
+        from pyedb.viewer import launch_viewer
 
         names = ["copper_first", "metal_middle", "copper_last"][:layer_count]
         layers = tuple(SceneLayer(name, (1, 0, 0, 1)) for name in names)
@@ -1768,14 +1769,14 @@ class TestWindowControls:
     def test_workspace_search_theme_and_display_controls_preserve_scene_state(self, monkeypatch):
         from unittest.mock import Mock
 
+        from layout_viewer.demo import demo_scene
+        from layout_viewer.qt import rhi
         from PySide6.QtCore import Qt
         from PySide6.QtGui import QPalette
         from PySide6.QtTest import QTest
         from PySide6.QtWidgets import QApplication, QWidget
 
         from pyedb.viewer import launch_viewer
-        from pyedb.viewer.demo import demo_scene
-        from pyedb.viewer.qt import rhi
 
         app = QApplication.instance() or QApplication([])
         host = QWidget()
@@ -1851,13 +1852,12 @@ class TestWindowControls:
 
 class TestPicking:
     def test_click_highlight_properties_clear_and_no_geometry_uploads(self):
+        from layout_viewer.demo import demo_scene
+        from layout_viewer.mesh import prepare_scene
+        from layout_viewer.qt.canvas import LayoutView
         from PySide6.QtCore import QPoint, Qt
         from PySide6.QtTest import QTest
         from PySide6.QtWidgets import QApplication
-
-        from pyedb.viewer.demo import demo_scene
-        from pyedb.viewer.mesh import prepare_scene
-        from pyedb.viewer.qt.canvas import LayoutView
 
         app = QApplication.instance() or QApplication([])
         scene = demo_scene()
@@ -1887,7 +1887,7 @@ class TestPicking:
             assert view.inspector.values["Length"] == "14.0000 mm"
             selected = _pixels(view)
             changed = np.any(original[:, :, :3] != selected[:, :, :3], axis=2)
-            from pyedb.viewer.colors import SELECTION_COLOR
+            from layout_viewer.colors import SELECTION_COLOR
 
             selected_color = np.asarray(SELECTION_COLOR) * 255
             colored = np.max(np.abs(selected[:, :, :3].astype(float) - selected_color), axis=2) < 28
@@ -1930,12 +1930,11 @@ class TestPicking:
             app.processEvents()
 
     def test_electric_hover_and_raspberry_selection_use_resident_geometry(self):
+        from layout_viewer.demo import demo_scene
+        from layout_viewer.mesh import prepare_scene
+        from layout_viewer.qt.canvas import LayoutView
         from PySide6.QtTest import QTest
         from PySide6.QtWidgets import QApplication
-
-        from pyedb.viewer.demo import demo_scene
-        from pyedb.viewer.mesh import prepare_scene
-        from pyedb.viewer.qt.canvas import LayoutView
 
         app = QApplication.instance() or QApplication([])
         scene = demo_scene()
@@ -1951,7 +1950,7 @@ class TestPicking:
             view.hover = view._pick_index.pick((28, -14), view.camera.scale, view.visible_layers)
             hover = _pixels(view)
             changed = np.any(original[:, :, :3] != hover[:, :, :3], axis=2)
-            from pyedb.viewer.colors import HOVER_COLOR
+            from layout_viewer.colors import HOVER_COLOR
 
             hover_color = np.asarray(HOVER_COLOR) * 255
             colored = np.max(np.abs(hover[:, :, :3].astype(float) - hover_color), axis=2) < 28
@@ -1971,13 +1970,12 @@ class TestPicking:
             app.processEvents()
 
     def test_pick_tool_and_drag_threshold_do_not_conflict_with_navigation(self):
+        from layout_viewer.demo import demo_scene
+        from layout_viewer.qt.app import show_scene
         from PySide6.QtCore import QPointF, Qt
         from PySide6.QtGui import QMouseEvent
         from PySide6.QtTest import QTest
         from PySide6.QtWidgets import QApplication
-
-        from pyedb.viewer.demo import demo_scene
-        from pyedb.viewer.qt.app import show_scene
 
         app = QApplication.instance() or QApplication([])
         window = show_scene(scene=demo_scene(), block=False)
@@ -2048,11 +2046,10 @@ class TestPicking:
             app.processEvents()
 
     def test_property_card_switches_immediately_and_stacks_on_narrow_canvas(self):
+        from layout_viewer.demo import demo_scene
+        from layout_viewer.mesh import prepare_scene
+        from layout_viewer.qt.canvas import LayoutView
         from PySide6.QtWidgets import QApplication, QLabel
-
-        from pyedb.viewer.demo import demo_scene
-        from pyedb.viewer.mesh import prepare_scene
-        from pyedb.viewer.qt.canvas import LayoutView
 
         app = QApplication.instance() or QApplication([])
         scene = demo_scene()
@@ -2084,11 +2081,10 @@ class TestPicking:
     def test_selection_rebinds_to_complete_progressive_snapshot(self):
         from dataclasses import replace
 
+        from layout_viewer.demo import demo_scene
+        from layout_viewer.mesh import prepare_scene
+        from layout_viewer.qt.canvas import LayoutView
         from PySide6.QtWidgets import QApplication
-
-        from pyedb.viewer.demo import demo_scene
-        from pyedb.viewer.mesh import prepare_scene
-        from pyedb.viewer.qt.canvas import LayoutView
 
         app = QApplication.instance() or QApplication([])
         scene = demo_scene()
@@ -2120,12 +2116,12 @@ class TestPicking:
 
 def test_uniform_arena_growth_and_resizing_keep_geometry_resident():
     """Zooming out can add hundreds of draws without changing the scene."""
+    from layout_viewer.mesh import prepare_scene
+    from layout_viewer.qt.canvas import LayoutView
     from PySide6.QtTest import QTest
     from PySide6.QtWidgets import QApplication
 
-    from pyedb.viewer import LayoutScene, SceneLayer, ScenePolygon
-    from pyedb.viewer.mesh import prepare_scene
-    from pyedb.viewer.qt.canvas import LayoutView
+    from layout_viewer import LayoutScene, SceneLayer, ScenePolygon
 
     def rect(x, y, margin):
         return (
@@ -2182,12 +2178,12 @@ def test_uniform_arena_growth_and_resizing_keep_geometry_resident():
 
 @pytest.mark.parametrize("color_by_net", [False, True])
 def test_polygon_with_holes_and_no_network_keeps_layer_color(color_by_net):
+    from layout_viewer.mesh import prepare_scene
+    from layout_viewer.qt.canvas import LayoutView
     from PySide6.QtTest import QTest
     from PySide6.QtWidgets import QApplication
 
-    from pyedb.viewer import LayoutScene, SceneLayer, ScenePolygon
-    from pyedb.viewer.mesh import prepare_scene
-    from pyedb.viewer.qt.canvas import LayoutView
+    from layout_viewer import LayoutScene, SceneLayer, ScenePolygon
 
     scene = LayoutScene(
         (SceneLayer("TOP", (0.2, 0.4, 0.8, 1)),),

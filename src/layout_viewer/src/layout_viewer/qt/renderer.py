@@ -12,7 +12,7 @@ import math
 import numpy as np
 from PySide6.QtGui import QRhiBuffer, QRhiColorAttachment, QRhiTextureRenderTargetDescription
 
-from pyedb.viewer.colors import (
+from layout_viewer.colors import (
     COMPONENT_COLORS,
     DRILL_COLOR,
     HIGHLIGHT_KEYLINE_COLOR,
@@ -20,11 +20,11 @@ from pyedb.viewer.colors import (
     SELECTION_COLOR,
     net_color,
 )
-from pyedb.viewer.qt.component_labels import ComponentLabels
-from pyedb.viewer.qt.coverage import SdfCoverage
-from pyedb.viewer.qt.grid import GridRenderer
-from pyedb.viewer.qt.rhi import Device, Target, camera_uniforms
-from pyedb.viewer.scene import ScenePolygon
+from layout_viewer.qt.component_labels import ComponentLabels
+from layout_viewer.qt.coverage import SdfCoverage
+from layout_viewer.qt.grid import GridRenderer
+from layout_viewer.qt.rhi import Device, Target, camera_uniforms
+from layout_viewer.scene import ScenePolygon
 
 
 class Renderer:

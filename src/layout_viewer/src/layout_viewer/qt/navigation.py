@@ -41,11 +41,11 @@ from PySide6.QtGui import (
 )
 from PySide6.QtWidgets import QFrame, QGraphicsDropShadowEffect, QHBoxLayout, QToolButton
 
-from pyedb.viewer.qt.icons import layer_icon_path
-from pyedb.viewer.qt.theme import COLORS
+from layout_viewer.qt.icons import layer_icon_path
+from layout_viewer.qt.theme import COLORS
 
 if TYPE_CHECKING:
-    from pyedb.viewer.qt.canvas import LayoutView
+    from layout_viewer.qt.canvas import LayoutView
 
 
 def navigation_icon(name: str) -> QIcon:

@@ -37,7 +37,7 @@ from PySide6.QtGui import (
 from PySide6.QtWidgets import QRhiWidget
 from PySide6.support import VoidPtr
 
-from pyedb.viewer.mesh import split_coordinates
+from layout_viewer.mesh import split_coordinates
 
 UNIFORM_SIZE = 256
 

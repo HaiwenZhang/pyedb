@@ -39,18 +39,18 @@ from PySide6.QtGui import (
 )
 from PySide6.QtWidgets import QLabel, QRhiWidget, QWidget
 
-from pyedb.viewer.camera import Camera
-from pyedb.viewer.picking import PickHit
-from pyedb.viewer.qt.inspector import ObjectInspector
-from pyedb.viewer.qt.loading import LoadingPanel
-from pyedb.viewer.qt.renderer import Renderer
-from pyedb.viewer.qt.rhi import graphics_api
-from pyedb.viewer.qt.theme import COLORS
+from layout_viewer.camera import Camera
+from layout_viewer.picking import PickHit
+from layout_viewer.qt.inspector import ObjectInspector
+from layout_viewer.qt.loading import LoadingPanel
+from layout_viewer.qt.renderer import Renderer
+from layout_viewer.qt.rhi import graphics_api
+from layout_viewer.qt.theme import COLORS
 
 if TYPE_CHECKING:
-    from pyedb.viewer.mesh import PreparedScene
-    from pyedb.viewer.picking import PickedObject, PickObject
-    from pyedb.viewer.scene import Bounds, LayoutScene
+    from layout_viewer.mesh import PreparedScene
+    from layout_viewer.picking import PickedObject, PickObject
+    from layout_viewer.scene import Bounds, LayoutScene
 
 
 class LayoutView(QRhiWidget):

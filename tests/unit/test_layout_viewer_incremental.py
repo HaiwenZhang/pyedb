@@ -7,17 +7,17 @@ from dataclasses import replace
 from types import SimpleNamespace
 from unittest.mock import Mock
 
+from layout_viewer.capture import SourceCapture, merge_scene
+from layout_viewer.incremental import BufferChain, append_buffer, prepare_incremental
+from layout_viewer.mesh import prepare_scene, scene_network_names
+from layout_viewer.picking import OverlayPickIndex, PickIndex
 import numpy as np
 import pytest
 
+from layout_viewer import LayoutScene, ScenePad, SceneTrace
 from pyedb.grpc.database.layout_changes import layout_changes
 from pyedb.grpc.database.primitive.primitive import Primitive
-from pyedb.viewer import LayoutScene, ScenePad, SceneTrace
 from pyedb.viewer.adapters.grpc import scene_from_edb, scene_patch_from_edb
-from pyedb.viewer.capture import SourceCapture, merge_scene
-from pyedb.viewer.incremental import BufferChain, append_buffer, prepare_incremental
-from pyedb.viewer.mesh import prepare_scene, scene_network_names
-from pyedb.viewer.picking import OverlayPickIndex, PickIndex
 from tests.unit.test_layout_viewer import _edb, _primitive, _via, picking_scene
 from tests.unit.test_layout_viewer_live import scene, wait_until
 
@@ -291,9 +291,8 @@ def test_compaction_reclaims_tombstones_and_rebuilds_picking():
 
 def test_live_window_uses_object_delta_but_refresh_forces_full_capture():
     pytest.importorskip("PySide6")
+    from layout_viewer.qt.window import LayoutWindow
     from PySide6.QtWidgets import QApplication
-
-    from pyedb.viewer.qt.window import LayoutWindow
 
     app = QApplication.instance() or QApplication([])
     core = _primitive(1)
@@ -319,10 +318,9 @@ def test_live_window_uses_object_delta_but_refresh_forces_full_capture():
 @pytest.mark.parametrize("failure_stage", ["capture", "mesh"])
 def test_failed_incremental_job_retries_from_the_last_accepted_revision(monkeypatch, failure_stage):
     pytest.importorskip("PySide6")
+    import layout_viewer.incremental as module
+    from layout_viewer.qt.window import LayoutWindow
     from PySide6.QtWidgets import QApplication
-
-    import pyedb.viewer.incremental as module
-    from pyedb.viewer.qt.window import LayoutWindow
 
     app = QApplication.instance() or QApplication([])
     core = _primitive(1)

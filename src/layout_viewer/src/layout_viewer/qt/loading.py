@@ -8,7 +8,7 @@ from __future__ import annotations
 from PySide6.QtCore import QElapsedTimer, Qt, QTimer, Slot
 from PySide6.QtWidgets import QFrame, QHBoxLayout, QLabel, QProgressBar, QVBoxLayout, QWidget
 
-from pyedb.viewer.qt.theme import COLORS
+from layout_viewer.qt.theme import COLORS
 
 
 class LoadingPanel(QFrame):

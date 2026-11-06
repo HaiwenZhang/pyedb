@@ -67,7 +67,7 @@ def main(argv: Sequence[str] | None = None) -> None:
     from pyedb.viewer import launch_viewer
 
     if args.demo:
-        from pyedb.viewer.demo import demo_scene
+        from layout_viewer.demo import demo_scene
 
         launch_viewer(scene=demo_scene(), color_by_net=args.color_by_net, backend=args.backend)
         return

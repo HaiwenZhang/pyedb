@@ -14,7 +14,7 @@ import sys
 def main():
     root = Path(__file__).resolve().parents[1]
     sys.path.insert(0, str(root / "_build_backend"))
-    from pyedb_shader_tools import SHADER_DIRECTORY, bake_shaders
+    from layout_viewer_shader_tools import SHADER_DIRECTORY, bake_shaders
 
     for output in bake_shaders(root / SHADER_DIRECTORY):
         print(output.name)

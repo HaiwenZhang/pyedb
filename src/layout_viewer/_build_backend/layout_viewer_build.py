@@ -9,7 +9,7 @@ import shutil
 import tempfile
 
 from flit_core import buildapi as _flit
-from pyedb_shader_tools import QSB_REQUIREMENT, SHADER_DIRECTORY, bake_shaders
+from layout_viewer_shader_tools import QSB_REQUIREMENT, SHADER_DIRECTORY, bake_shaders
 
 
 def _compiler_requirements(requirements):
@@ -37,10 +37,12 @@ def build_wheel(wheel_directory, config_settings=None, metadata_directory=None):
     root = Path.cwd().resolve()
     destination = str(Path(wheel_directory).resolve())
     metadata = str(Path(metadata_directory).resolve()) if metadata_directory is not None else None
-    with tempfile.TemporaryDirectory(prefix="pyedb-wheel-") as temporary:
+    with tempfile.TemporaryDirectory(prefix="layout-viewer-wheel-") as temporary:
         staging = Path(temporary)
         shutil.copytree(
-            root / "src/pyedb", staging / "src/pyedb", ignore=shutil.ignore_patterns("__pycache__", "*.pyc", "*.qsb")
+            root / "src/layout_viewer",
+            staging / "src/layout_viewer",
+            ignore=shutil.ignore_patterns("__pycache__", "*.pyc", "*.qsb"),
         )
         for name in ("pyproject.toml", "README.md", "LICENSE"):
             shutil.copy2(root / name, staging / name)

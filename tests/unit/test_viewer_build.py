@@ -16,13 +16,14 @@ import pytest
 pytest.importorskip("flit_core")
 
 pytestmark = [pytest.mark.unit, pytest.mark.no_licence]
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[2] / "src/layout_viewer"
+SHADERS = "src/layout_viewer/qt/shaders"
 
 
 @pytest.fixture
 def backend(monkeypatch):
     monkeypatch.syspath_prepend(str(ROOT / "_build_backend"))
-    return importlib.import_module("pyedb_build")
+    return importlib.import_module("layout_viewer_build")
 
 
 @pytest.fixture
@@ -32,9 +33,11 @@ def project(tmp_path, monkeypatch):
     shutil.copytree(ROOT / "_build_backend", tmp_path / "_build_backend", ignore=shutil.ignore_patterns("__pycache__"))
     (tmp_path / "tools").mkdir()
     shutil.copy2(ROOT / "tools/bake_viewer_shaders.py", tmp_path / "tools/bake_viewer_shaders.py")
-    directory = tmp_path / "src/pyedb/viewer/qt/shaders"
-    shutil.copytree(ROOT / "src/pyedb/viewer/qt/shaders", directory, ignore=shutil.ignore_patterns("*.qsb"))
-    (tmp_path / "src/pyedb/__init__.py").write_text('__version__ = "0.1.0"\n', encoding="utf-8")
+    directory = tmp_path / SHADERS
+    shutil.copytree(ROOT / SHADERS, directory, ignore=shutil.ignore_patterns("*.qsb"))
+    (tmp_path / "src/layout_viewer/__init__.py").write_text(
+        '"""Layout viewer."""\n\n__version__ = "0.1.0"\n', encoding="utf-8"
+    )
     (tmp_path / "dist").mkdir()
     monkeypatch.chdir(tmp_path)
     return tmp_path
@@ -49,13 +52,13 @@ def test_metadata_and_sdist_do_not_require_qt(backend, project, monkeypatch):
     metadata = backend.prepare_metadata_for_build_wheel(str(project / "metadata"))
     assert (project / "metadata" / metadata / "METADATA").is_file()
     # Even a cached pack in a developer checkout must stay out of the sdist.
-    (project / "src/pyedb/viewer/qt/shaders/copper.frag.qsb").write_bytes(b"stale cache")
+    (project / SHADERS / "copper.frag.qsb").write_bytes(b"stale cache")
     archive = project / "dist" / backend.build_sdist(str(project / "dist"))
     with tarfile.open(archive) as source:
         names = source.getnames()
     assert not any(name.endswith(".qsb") for name in names)
-    assert any(name.endswith("/_build_backend/pyedb_build.py") for name in names)
-    assert any(name.endswith("/_build_backend/pyedb_shader_tools.py") for name in names)
+    assert any(name.endswith("/_build_backend/layout_viewer_build.py") for name in names)
+    assert any(name.endswith("/_build_backend/layout_viewer_shader_tools.py") for name in names)
     assert any(name.endswith("/tools/bake_viewer_shaders.py") for name in names)
     assert not any("__pycache__" in name for name in names)
 
@@ -68,7 +71,7 @@ def test_supplied_compiler_is_not_a_runtime_dependency(backend, project, monkeyp
 
 def _require_compiler():
     pytest.importorskip("PySide6")
-    tools = importlib.import_module("pyedb_shader_tools")
+    tools = importlib.import_module("layout_viewer_shader_tools")
     try:
         tools._compiler()
     except RuntimeError as exc:
@@ -89,13 +92,13 @@ def _check_wheel(path):
             formats = {key.source() for key in shader.availableShaders()}
             assert {QShader.Source.SpirvShader, QShader.Source.HlslShader, QShader.Source.MslShader} <= formats
         metadata = archive.read(next(name for name in names if name.endswith(".dist-info/METADATA"))).decode()
-        assert all("extra" in line for line in metadata.splitlines() if line.startswith("Requires-Dist: PySide6"))
+        assert any(line.startswith("Requires-Dist: PySide6") for line in metadata.splitlines())
         assert not any("_build_backend" in name for name in names)
 
 
 def test_wheel_sdist_roundtrip_and_editable_compile_fresh_packs(backend, project, tmp_path):
     _require_compiler()
-    shaders = project / "src/pyedb/viewer/qt/shaders"
+    shaders = project / SHADERS
     cached = shaders / "copper.frag.qsb"
     cached.write_bytes(b"stale cache that must not be packaged")
     wheel = project / "dist" / backend.build_wheel(str(project / "dist"))
@@ -113,7 +116,8 @@ def test_wheel_sdist_roundtrip_and_editable_compile_fresh_packs(backend, project
         [
             sys.executable,
             "-c",
-            "import sys; sys.path.insert(0, '_build_backend'); import pyedb_build; pyedb_build.build_wheel('dist')",
+            "import sys; sys.path.insert(0, '_build_backend'); "
+            "import layout_viewer_build; layout_viewer_build.build_wheel('dist')",
         ],
         cwd=extracted,
         capture_output=True,
@@ -125,7 +129,7 @@ def test_wheel_sdist_roundtrip_and_editable_compile_fresh_packs(backend, project
 
     editable = project / "dist" / backend.build_editable(str(project / "dist"))
     with zipfile.ZipFile(editable) as archive:
-        assert archive.read("pyedb.pth").decode().strip() == str(project / "src")
+        assert archive.read("layout_viewer.pth").decode().strip() == str(project / "src")
     from PySide6.QtGui import QShader
 
     for pack in shaders.glob("*.qsb"):
@@ -134,7 +138,7 @@ def test_wheel_sdist_roundtrip_and_editable_compile_fresh_packs(backend, project
 
 def test_bad_shader_stops_build_without_shipping_stale_cache(backend, project):
     _require_compiler()
-    directory = project / "src/pyedb/viewer/qt/shaders"
+    directory = project / SHADERS
     (directory / "copper.frag").write_text("invalid shader", encoding="utf-8")
     cached = directory / "copper.frag.qsb"
     cached.write_bytes(b"stale cache")

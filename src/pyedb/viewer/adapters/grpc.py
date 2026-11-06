@@ -41,10 +41,8 @@ from ansys.edb.core.layer.layer import Layer as CoreLayer
 from ansys.edb.core.primitive.padstack_instance import PadstackInstance as CorePadstackInstance
 from ansys.edb.core.primitive.primitive import Primitive as CorePrimitive
 from ansys.edb.core.session import StubAccessor, StubType
-
-from pyedb.misc.utilities import arc_segment_count
-from pyedb.viewer.progress import progress_items
-from pyedb.viewer.scene import (
+from layout_viewer.progress import progress_items
+from layout_viewer.scene import (
     LayoutScene,
     SceneComponent,
     SceneJoin,
@@ -56,15 +54,17 @@ from pyedb.viewer.scene import (
     union_bounds,
 )
 
+from pyedb.misc.utilities import arc_segment_count
+
 if TYPE_CHECKING:
     from ansys.edb.core.definition.padstack_def_data import PadstackDefData
     from ansys.edb.core.geometry.point_data import PointData
     from ansys.edb.core.hierarchy.component_group import ComponentGroup
     from ansys.edb.core.primitive.padstack_instance import PadstackInstance
     from ansys.edb.core.primitive.primitive import Primitive
+    from layout_viewer.scene import Point, Ring
 
     from pyedb.grpc.edb import Edb
-    from pyedb.viewer.scene import Point, Ring
 
     Progress = Callable[[str, int, int], None]
     Placement = tuple[Callable[[Point], Point], Callable[[Point], Point], float]

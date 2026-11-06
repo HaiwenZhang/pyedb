@@ -20,27 +20,47 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-"""PyEDB materials shared by the CPU copper pass and GPU analytic primitives."""
+"""Interactive 2D PCB layout viewer. Importing this module does not load Qt."""
 
 from __future__ import annotations
 
-from pyedb.generic.constants import CSS4_COLORS
+from typing import TYPE_CHECKING, Any
 
-NET_COLORS = tuple(tuple(int(value[i : i + 2], 16) / 255 for i in (1, 3, 5)) for value in CSS4_COLORS.values())
-BACKGROUND_COLOR = (1.0, 1.0, 1.0, 1.0)
-DRILL_COLOR = (0.6, 0.6, 0.6, 1.0)
-# Component envelope color sampled from the supplied reference (#b87333).
-COMPONENT_OUTLINE_COLOR = (184 / 255, 115 / 255, 51 / 255)
-COMPONENT_COLORS = {"top": COMPONENT_OUTLINE_COLOR, "bottom": COMPONENT_OUTLINE_COLOR}
-# Reserved interaction colors, outside CSS4_COLORS. The dark keyline makes
-# these states distinguishable even over a visually similar network material.
-HOVER_COLOR = (0 / 255, 87 / 255, 255 / 255)  # #0057FF
-SELECTION_COLOR = (255 / 255, 0 / 255, 110 / 255)  # #FF006E
-HIGHLIGHT_KEYLINE_COLOR = (17 / 255, 24 / 255, 39 / 255)  # #111827
-# Thin shape outlines share the near-black keyline.
-OUTLINE_COLOR = HIGHLIGHT_KEYLINE_COLOR
+from layout_viewer.picking import PickedObject
+from layout_viewer.scene import (
+    LayoutScene,
+    SceneComponent,
+    SceneJoin,
+    SceneLayer,
+    SceneObjectInfo,
+    ScenePad,
+    ScenePolygon,
+    SceneTrace,
+)
+
+if TYPE_CHECKING:
+    from layout_viewer.qt.window import LayoutWindow
+
+__version__ = "0.1.0"
+
+__all__ = [
+    "LayoutScene",
+    "PickedObject",
+    "SceneComponent",
+    "SceneJoin",
+    "SceneLayer",
+    "SceneObjectInfo",
+    "ScenePad",
+    "ScenePolygon",
+    "SceneTrace",
+    "show_scene",
+]
 
 
-def net_color(net_id: int) -> tuple[float, ...] | None:
-    """Match nets.plot's existing CSS4 palette; id zero retains layer color."""
-    return NET_COLORS[(net_id - 1) % len(NET_COLORS)] if net_id else None
+def show_scene(scene: LayoutScene | None = None, **options: Any) -> LayoutWindow:
+    """Open a layout window; see :func:`layout_viewer.qt.app.show_scene` for options."""
+    try:
+        from layout_viewer.qt.app import show_scene as show
+    except ImportError as exc:
+        raise ImportError("The layout viewer requires PySide6 and mapbox-earcut: pip install layout-viewer.") from exc
+    return show(scene, **options)

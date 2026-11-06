@@ -18,8 +18,7 @@ from pyedb.misc.utilities import compute_arc_points
 if TYPE_CHECKING:
     from ansys.edb.core.geometry.point_data import PointData
     from ansys.edb.core.primitive.path import Path
-
-    from pyedb.viewer.scene import Ring
+    from layout_viewer.scene import Ring
 
     DecodedPoint = tuple[float | None, float | None, float | None]
 

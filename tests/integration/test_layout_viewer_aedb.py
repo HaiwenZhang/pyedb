@@ -18,15 +18,15 @@ import shutil
 import time
 from unittest.mock import Mock
 
+from layout_viewer.capture import SourceCapture
+from layout_viewer.incremental import prepare_incremental
+from layout_viewer.mesh import prepare_scene
 import numpy as np
 import pytest
 
 from pyedb.grpc.database.layout_changes import layout_changes
 from pyedb.viewer import scene_from_edb
 from pyedb.viewer.adapters.grpc import scene_patch_from_edb
-from pyedb.viewer.capture import SourceCapture
-from pyedb.viewer.incremental import prepare_incremental
-from pyedb.viewer.mesh import prepare_scene
 from tests.conftest import config
 
 pytestmark = [

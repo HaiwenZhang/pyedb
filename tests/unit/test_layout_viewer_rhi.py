@@ -10,10 +10,9 @@ import pytest
 
 pytest.importorskip("PySide6.QtWidgets")
 
+from layout_viewer.qt.rhi import graphics_api
 from PySide6.QtGui import QShader
 from PySide6.QtWidgets import QRhiWidget
-
-from pyedb.viewer.qt.rhi import graphics_api
 
 pytestmark = [pytest.mark.unit, pytest.mark.no_licence]
 
@@ -53,7 +52,7 @@ def test_invalid_or_incompatible_backend_is_rejected(backend, platform):
 
 
 def test_bundled_shader_packs_contain_native_backends():
-    import pyedb.viewer.qt.rhi as rhi
+    import layout_viewer.qt.rhi as rhi
 
     directory = Path(rhi.__file__).with_name("shaders")
     sources = sorted((*directory.glob("*.vert"), *directory.glob("*.frag")))

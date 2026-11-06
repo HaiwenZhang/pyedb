@@ -9,7 +9,7 @@ import shutil
 import subprocess
 import tempfile
 
-SHADER_DIRECTORY = Path("src/pyedb/viewer/qt/shaders")
+SHADER_DIRECTORY = Path("src/layout_viewer/qt/shaders")
 QSB_REQUIREMENT = "PySide6>=6.8.3,<7"
 
 
@@ -46,7 +46,7 @@ def bake_shaders(directory):
     if not sources:
         raise RuntimeError(f"No layout shader sources found in {directory}")
     qsb, env = _compiler()
-    with tempfile.TemporaryDirectory(prefix="pyedb-shaders-") as temporary:
+    with tempfile.TemporaryDirectory(prefix="layout-viewer-shaders-") as temporary:
         temporary = Path(temporary)
         for source in sources:
             subprocess.run(
