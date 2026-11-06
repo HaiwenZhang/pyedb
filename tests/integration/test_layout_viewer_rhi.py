@@ -64,14 +64,14 @@ def test_live_edits_refresh_gpu_pixels_and_picking_in_the_same_window(monkeypatc
 
     from layout_viewer import LayoutScene, SceneLayer, ScenePolygon
     from pyedb.grpc.database.layout_changes import layout_mutation
-    from pyedb.viewer import launch_viewer
+    from pyedb.viewer_adapter import launch_viewer
 
     app = QApplication.instance() or QApplication([])
     layers = (SceneLayer("TOP", (1, 0, 0, 1)),)
     left = ScenePolygon(1, "TOP", "GND", ((-5, -1), (-3, -1), (-3, 1), (-5, 1)))
     right = ScenePolygon(2, "TOP", "GND", ((3, -1), (5, -1), (5, 1), (3, 1)))
     edb = SimpleNamespace(current=LayoutScene(layers, (left,)))
-    monkeypatch.setattr("pyedb.viewer.scene_from_edb", lambda source, **kwargs: source.current)
+    monkeypatch.setattr("pyedb.viewer_adapter.scene_from_edb", lambda source, **kwargs: source.current)
     window = launch_viewer(edb, block=False, live=True, color_by_net=False, refresh_interval=5)
     canvas = window.canvas
 
@@ -144,7 +144,7 @@ def test_large_board_object_deltas_upload_only_changed_geometry():
     from PySide6.QtWidgets import QApplication
 
     from pyedb.grpc.database.primitive.primitive import Primitive
-    from pyedb.viewer import launch_viewer
+    from pyedb.viewer_adapter import launch_viewer
     from tests.unit.test_layout_viewer import _edb, _primitive, _value
 
     app = QApplication.instance() or QApplication([])
@@ -384,7 +384,7 @@ class TestLoading:
         from types import SimpleNamespace
         from PySide6.QtCore import QTimer, QMetaObject, QObject, Slot, Qt
         from PySide6.QtWidgets import QApplication
-        import pyedb.viewer as viewer
+        import pyedb.viewer_adapter as viewer
         from layout_viewer.demo import demo_scene
         from layout_viewer.qt.window import LayoutWindow
 
@@ -1487,7 +1487,7 @@ class TestWindowControls:
         from PySide6.QtTest import QTest
         from PySide6.QtWidgets import QApplication
 
-        from pyedb.viewer import launch_viewer
+        from pyedb.viewer_adapter import launch_viewer
 
         app = QApplication.instance() or QApplication([])
         window = launch_viewer(scene=demo_scene())
@@ -1594,7 +1594,7 @@ class TestWindowControls:
         from PySide6.QtTest import QTest
         from PySide6.QtWidgets import QApplication
 
-        from pyedb.viewer import launch_viewer
+        from pyedb.viewer_adapter import launch_viewer
 
         app = QApplication.instance() or QApplication([])
         window = launch_viewer(scene=demo_scene(), block=False)
@@ -1657,7 +1657,7 @@ class TestWindowControls:
         from PySide6.QtWidgets import QApplication
 
         from layout_viewer import LayoutScene, SceneLayer, ScenePolygon
-        from pyedb.viewer import launch_viewer
+        from pyedb.viewer_adapter import launch_viewer
 
         scene = (
             LayoutScene((), ())
@@ -1701,7 +1701,7 @@ class TestWindowControls:
         from PySide6.QtWidgets import QApplication
 
         from layout_viewer import LayoutScene, SceneLayer, ScenePolygon
-        from pyedb.viewer import launch_viewer
+        from pyedb.viewer_adapter import launch_viewer
 
         names = ["copper_first", "metal_middle", "copper_last"][:layer_count]
         layers = tuple(SceneLayer(name, (1, 0, 0, 1)) for name in names)
@@ -1776,7 +1776,7 @@ class TestWindowControls:
         from PySide6.QtTest import QTest
         from PySide6.QtWidgets import QApplication, QWidget
 
-        from pyedb.viewer import launch_viewer
+        from pyedb.viewer_adapter import launch_viewer
 
         app = QApplication.instance() or QApplication([])
         host = QWidget()

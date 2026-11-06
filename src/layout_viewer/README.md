@@ -3,7 +3,7 @@
 Interactive 2D PCB layout viewer built on PySide6 and Qt RHI (Direct3D 11, Vulkan, Metal).
 
 The package renders detached `LayoutScene` values and has no EDB dependency. PyEDB
-supplies scenes from EDB sessions through `pyedb.viewer` (`pip install "pyedb[viewer]"`).
+supplies scenes from EDB sessions through `pyedb.viewer_adapter` (`pip install "pyedb[viewer]"`).
 
 ```python
 from layout_viewer import show_scene

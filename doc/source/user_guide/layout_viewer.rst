@@ -13,7 +13,7 @@ Install and launch
 The viewer has two parts. The ``layout-viewer`` distribution (import name
 ``layout_viewer``) contains the EDB-independent frontend: scene types such as
 ``LayoutScene`` and ``PickedObject``, meshing, and the Qt window ``LayoutWindow``.
-``pyedb.viewer`` captures EDB sessions into scenes and provides ``launch_viewer``,
+``pyedb.viewer_adapter`` captures EDB sessions into scenes and provides ``launch_viewer``,
 ``scene_from_edb`` and the command line below. The ``viewer`` extra installs both.
 
 .. code-block:: console

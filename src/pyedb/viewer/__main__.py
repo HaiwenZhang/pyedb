@@ -30,7 +30,9 @@ from typing import Sequence
 
 
 def main(argv: Sequence[str] | None = None) -> None:
-    parser = argparse.ArgumentParser(description="Interactive PySide6/RHI 2D EDB layout viewer")
+    parser = argparse.ArgumentParser(
+        prog="python -m pyedb.viewer", description="Interactive PySide6/RHI 2D EDB layout viewer"
+    )
     parser.add_argument("path", nargs="?", type=Path, help="Existing .aedb directory")
     parser.add_argument(
         "--backend",
@@ -64,8 +66,12 @@ def main(argv: Sequence[str] | None = None) -> None:
     args = parser.parse_args(argv)
     if args.demo == (args.path is not None):
         parser.error("Provide an AEDB directory or --demo.")
-    from pyedb.viewer import launch_viewer
+    from pyedb.viewer_adapter import _INSTALL_HINT, _require_layout_viewer, launch_viewer
 
+    try:
+        _require_layout_viewer()
+    except ImportError:
+        parser.exit(1, f"{parser.prog}: error: {_INSTALL_HINT}\n")
     if args.demo:
         from layout_viewer.demo import demo_scene
 

@@ -25,8 +25,8 @@ import numpy as np
 import pytest
 
 from pyedb.grpc.database.layout_changes import layout_changes
-from pyedb.viewer import scene_from_edb
-from pyedb.viewer.adapters.grpc import scene_patch_from_edb
+from pyedb.viewer_adapter import scene_from_edb
+from pyedb.viewer_adapter.edb_scene import scene_patch_from_edb
 from tests.conftest import config
 
 pytestmark = [

@@ -35,6 +35,16 @@ if TYPE_CHECKING:
 
 __all__ = ["launch_viewer", "scene_from_edb"]
 
+_INSTALL_HINT = "The layout viewer requires optional dependencies: pip install 'pyedb[viewer]'."
+
+
+def _require_layout_viewer() -> None:
+    """Raise an actionable error when the optional frontend is not installed."""
+    try:
+        import layout_viewer  # noqa: F401
+    except ImportError as exc:
+        raise ImportError(_INSTALL_HINT) from exc
+
 
 def scene_from_edb(
     edb: Any,
@@ -57,7 +67,8 @@ def scene_from_edb(
     full traceback and re-raised immediately instead of being recorded as a
     diagnostic note and skipped.
     """
-    from pyedb.viewer.adapters.grpc import scene_from_edb as extract
+    _require_layout_viewer()
+    from pyedb.viewer_adapter.edb_scene import scene_from_edb as extract
 
     return extract(
         edb,
@@ -165,10 +176,11 @@ def launch_viewer(
         raise ValueError("live=True requires an EDB session.")
     if isinstance(refresh_interval, bool) or not isinstance(refresh_interval, int) or refresh_interval < 0:
         raise ValueError("refresh_interval must be a nonnegative integer in milliseconds.")
+    _require_layout_viewer()
     try:
         from layout_viewer.qt.app import show_scene
     except ImportError as exc:
-        raise ImportError("The layout viewer requires optional dependencies: pip install 'pyedb[viewer]'.") from exc
+        raise ImportError(_INSTALL_HINT) from exc
     options: dict[str, Any] = {}
     if scene is None:
         from pathlib import Path
@@ -194,7 +206,7 @@ def launch_viewer(
             )
 
         def load_delta(delta, previous, progress):
-            from pyedb.viewer.adapters.grpc import scene_patch_from_edb
+            from pyedb.viewer_adapter.edb_scene import scene_patch_from_edb
 
             return scene_patch_from_edb(
                 edb,

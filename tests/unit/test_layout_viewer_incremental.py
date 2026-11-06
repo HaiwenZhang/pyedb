@@ -17,7 +17,7 @@ import pytest
 from layout_viewer import LayoutScene, ScenePad, SceneTrace
 from pyedb.grpc.database.layout_changes import layout_changes
 from pyedb.grpc.database.primitive.primitive import Primitive
-from pyedb.viewer.adapters.grpc import scene_from_edb, scene_patch_from_edb
+from pyedb.viewer_adapter.edb_scene import scene_from_edb, scene_patch_from_edb
 from tests.unit.test_layout_viewer import _edb, _primitive, _via, picking_scene
 from tests.unit.test_layout_viewer_live import scene, wait_until
 

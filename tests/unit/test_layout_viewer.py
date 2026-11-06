@@ -40,9 +40,8 @@ import pytest
 from layout_viewer import LayoutScene, SceneComponent, SceneLayer, SceneObjectInfo, ScenePad, ScenePolygon, SceneTrace
 from pyedb.generic.geometry_operators import GeometryOperators
 from pyedb.grpc.database.primitive.primitive import Primitive
-from pyedb.viewer import launch_viewer, scene_from_edb
-from pyedb.viewer.adapters import grpc_stream
-from pyedb.viewer.adapters.grpc_stream import centerline_length
+from pyedb.viewer_adapter import edb_geometry, launch_viewer, scene_from_edb
+from pyedb.viewer_adapter.edb_geometry import centerline_length
 
 pytestmark = [pytest.mark.unit, pytest.mark.no_licence, pytest.mark.grpc]
 
@@ -417,7 +416,7 @@ class TestSceneModel:
 
     def test_scene_import_does_not_load_optional_gui_or_triangulator(self):
         code = (
-            "import sys; import pyedb.viewer, layout_viewer; "
+            "import sys; import pyedb.viewer_adapter, layout_viewer; "
             "assert not any(x in sys.modules for x in ('PySide6', 'OpenGL', 'mapbox_earcut'))"
         )
         result = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True)
@@ -570,7 +569,7 @@ class TestGrpcAdapter:
         from pyedb.grpc.edb import Edb
 
         launch = Mock(return_value="window")
-        monkeypatch.setattr("pyedb.viewer.launch_viewer", launch)
+        monkeypatch.setattr("pyedb.viewer_adapter.launch_viewer", launch)
         edb = object()
         assert Edb.view_layout(edb, layers="TOP", block=False) == "window"
         launch.assert_called_once_with(
@@ -739,7 +738,7 @@ class TestGrpcAdapter:
 
     @pytest.mark.grpc
     def test_contour_reads_polygon_data_points(self):
-        from pyedb.viewer.adapters.grpc import _contour
+        from pyedb.viewer_adapter.edb_scene import _contour
 
         points = [
             SimpleNamespace(is_arc=False, x=CoreValue(x), y=CoreValue(y)) for x, y in [(0, 0), (0.001, 0), (0, 0.001)]
@@ -759,7 +758,7 @@ class TestGrpcAdapter:
         ],
     )
     def test_primitive_name_uses_aedt_name_with_default_fallback(self, kind, prop, expected):
-        from pyedb.viewer.adapters.grpc import _primitive_name
+        from pyedb.viewer_adapter.edb_scene import _primitive_name
 
         getter = Mock(side_effect=prop) if isinstance(prop, Exception) else Mock(return_value=prop)
         if prop is None:
@@ -841,10 +840,10 @@ class TestTessellation:
 
         from ansys.edb.core.utility.value import Value as CoreValue
 
-        from pyedb.viewer.adapters import grpc_stream
+        from pyedb.viewer_adapter import edb_geometry
 
         path = SimpleNamespace(width=CoreValue(0.00025), center_line=_centerline([(0, 0), (0.003, 0.004)]))
-        width, length = grpc_stream.trace_dimensions(path)
+        width, length = edb_geometry.trace_dimensions(path)
         assert width == pytest.approx(0.25)
         assert length == pytest.approx(5.0)
 
@@ -857,12 +856,12 @@ class TestTessellation:
         x, y = Primitive._get_points_for_plot(None, points, 8, chord_error=None if error is None else error / 1000)
         x, y = GeometryOperators.orient_polygon(x, y, clockwise=True)
         reference = tuple((a * 1000, b * 1000) for a, b in zip(x, y))
-        assert grpc_stream.contour_from_points(points, 8, error) == reference
+        assert edb_geometry.contour_from_points(points, 8, error) == reference
 
     @pytest.mark.grpc
     @pytest.mark.parametrize("height", [-0.0002, 0.0002])
     def test_core_point_arcs_stay_within_their_chord_bounds(self, height):
-        contour = grpc_stream.contour_from_points(
+        contour = edb_geometry.contour_from_points(
             [PointData((0, 0)), PointData(height), PointData((0.001, 0))], 8, 0.01
         )
         assert len(contour) > 3
@@ -1041,7 +1040,7 @@ class TestPadstacks:
         assert "Padstack 9, layer TOP: A contour requires at least three distinct points." in scene.diagnostics
 
     def test_nsided_polygon_points_returns_a_regular_polygon(self):
-        from pyedb.viewer.adapters.grpc import _nsided_polygon_points
+        from pyedb.viewer_adapter.edb_scene import _nsided_polygon_points
 
         ring = _nsided_polygon_points(size=2.0, num_sides=6)
         assert len(ring) == 6
@@ -1055,7 +1054,7 @@ class TestPadstacks:
         assert len(_nsided_polygon_points(size=1.0, num_sides=1)) == 3
 
     def test_thermal_relief_outline_builds_round_and_square_boundaries(self):
-        from pyedb.viewer.adapters.grpc import _thermal_relief_outline
+        from pyedb.viewer_adapter.edb_scene import _thermal_relief_outline
 
         round_ring = _thermal_relief_outline(True, inner=1.0, isolation_gap=0.5, arc_segments=16)
         assert len(round_ring) == 16
@@ -1066,7 +1065,7 @@ class TestPadstacks:
         assert square_ring == ((1.0, 1.0), (-1.0, 1.0), (-1.0, -1.0), (1.0, -1.0))
 
     def test_pad_template_builds_nsided_polygon_ring_without_scaling_side_count(self):
-        from pyedb.viewer.adapters.grpc import _pad_template
+        from pyedb.viewer_adapter.edb_scene import _pad_template
 
         pad = _pad("nsided_polygon", parameters=(0.002, 6))
         shape, ring, offset, rotation = _pad_template(pad, arc_segments=12)
@@ -1082,7 +1081,7 @@ class TestPadstacks:
         [("round45", True), ("round90", True), ("square45", False), ("square90", False)],
     )
     def test_pad_template_builds_thermal_relief_ring_for_all_variants(self, shape, round_outer):
-        from pyedb.viewer.adapters.grpc import _pad_template
+        from pyedb.viewer_adapter.edb_scene import _pad_template
 
         pad = _pad(shape, parameters=(0.001, 0.0002, 0.0003))
         result = _pad_template(pad, arc_segments=8)
@@ -1100,14 +1099,14 @@ class TestPadstacks:
                 assert abs(y) == pytest.approx(expected_radius)
 
     def test_pad_template_treats_invalid_geometry_like_no_shape(self):
-        from pyedb.viewer.adapters.grpc import _pad_template
+        from pyedb.viewer_adapter.edb_scene import _pad_template
 
         assert _pad_template(_pad("geometry"), arc_segments=12) is None
 
     def test_raw_pad_properties_names_nsided_polygon_without_colliding_with_polygon(self):
         from ansys.edb.core.definition.padstack_def_data import PadGeometryType
 
-        from pyedb.viewer.adapters.grpc import _pad_param
+        from pyedb.viewer_adapter.edb_scene import _pad_param
 
         data = SimpleNamespace(
             get_pad_parameters=Mock(
@@ -1145,7 +1144,7 @@ class TestPadstacks:
     ):
         from ansys.edb.core.definition.padstack_def_data import PadGeometryType
 
-        from pyedb.viewer.adapters.grpc import _padstack_definition
+        from pyedb.viewer_adapter.edb_scene import _padstack_definition
 
         geom_type = getattr(PadGeometryType, geom_type_name)
         data = SimpleNamespace(
@@ -1163,7 +1162,7 @@ class TestPadstacks:
     def test_padstack_definition_no_hole_for_missing_or_invalid_geometry(self, geom_type_name):
         from ansys.edb.core.definition.padstack_def_data import PadGeometryType
 
-        from pyedb.viewer.adapters.grpc import _padstack_definition
+        from pyedb.viewer_adapter.edb_scene import _padstack_definition
 
         geom_type = getattr(PadGeometryType, geom_type_name)
         data = SimpleNamespace(
@@ -1179,7 +1178,7 @@ class TestPadstacks:
     def test_padstack_definition_flags_thermal_relief_approximation(self):
         from ansys.edb.core.definition.padstack_def_data import PadGeometryType, PadType
 
-        from pyedb.viewer.adapters.grpc import _padstack_definition
+        from pyedb.viewer_adapter.edb_scene import _padstack_definition
 
         def get_pad_parameters(layer_name, pad_type):
             if pad_type != PadType.REGULAR_PAD:
@@ -1202,7 +1201,7 @@ class TestPadstacks:
         assert any("thermal-relief spokes are not rendered" in message for message in diagnostics)
 
     def test_noncircular_hole_is_cut_out_with_its_true_shape(self):
-        from pyedb.viewer.adapters.grpc import _append_padstack_geometry, _hole_profile
+        from pyedb.viewer_adapter.edb_scene import _append_padstack_geometry, _hole_profile
 
         def hole(shape):
             return SimpleNamespace(shape=shape, parameters_values=[0.004, 0.002, 0.0005], rotation=0.0)
@@ -1248,7 +1247,7 @@ class TestPadstacks:
 
     @pytest.mark.grpc
     def test_pad_metadata_uses_core_layer_range_and_pose(self):
-        from pyedb.viewer.adapters.grpc import _padstack_layers, _placement
+        from pyedb.viewer_adapter.edb_scene import _padstack_layers, _placement
 
         layer_range = Mock(return_value=(SimpleNamespace(name="INNER"), SimpleNamespace(name="BACK")))
         pose = Mock(return_value=(CoreValue(0.001), CoreValue(0.002), CoreValue(0)))
@@ -1327,7 +1326,7 @@ class TestComponents:
         assert any("estimated" in message for message in scene.diagnostics)
 
     def test_pad_positions_reuse_one_component_transform_and_one_pose_read(self):
-        from pyedb.viewer.adapters.grpc import _placement
+        from pyedb.viewer_adapter.edb_scene import _placement
 
         transform = SimpleNamespace(
             is_null=False,
@@ -1478,7 +1477,7 @@ class TestComponents:
 
     @pytest.mark.grpc
     def test_component_basis_uses_one_polygon_call_and_preserves_point_fallback(self, monkeypatch):
-        transform = object.__new__(grpc_stream.CoreTransform)
+        transform = object.__new__(edb_geometry.CoreTransform)
         points = [PointData((1, 2)), PointData((1, 1)), PointData((0, 2))]
         calls = []
 
@@ -1486,26 +1485,26 @@ class TestComponents:
             calls.append([(point.x.value, point.y.value) for point in triangle.points])
             return SimpleNamespace(points=points)
 
-        monkeypatch.setattr(grpc_stream.CoreTransform, "transform_polygon", apply)
-        assert grpc_stream.transform_basis_points(transform) is points
+        monkeypatch.setattr(edb_geometry.CoreTransform, "transform_polygon", apply)
+        assert edb_geometry.transform_basis_points(transform) is points
         assert calls == [[(0, 0), (1, 0), (0, 1)]]
-        assert grpc_stream.transform_basis_points(object()) is None
+        assert edb_geometry.transform_basis_points(object()) is None
         points.append(PointData((1, 2)))
-        assert grpc_stream.transform_basis_points(transform) is None
+        assert edb_geometry.transform_basis_points(transform) is None
 
     @pytest.mark.grpc
     def test_component_basis_keeps_legacy_path_when_batch_rpc_is_unsupported(self, monkeypatch):
-        class Unsupported(grpc_stream.grpc.RpcError):
+        class Unsupported(edb_geometry.grpc.RpcError):
             def code(self):
-                return grpc_stream.grpc.StatusCode.UNIMPLEMENTED
+                return edb_geometry.grpc.StatusCode.UNIMPLEMENTED
 
-        transform = object.__new__(grpc_stream.CoreTransform)
-        monkeypatch.setattr(grpc_stream.CoreTransform, "transform_polygon", Mock(side_effect=Unsupported()))
-        assert grpc_stream.transform_basis_points(transform) is None
+        transform = object.__new__(edb_geometry.CoreTransform)
+        monkeypatch.setattr(edb_geometry.CoreTransform, "transform_polygon", Mock(side_effect=Unsupported()))
+        assert edb_geometry.transform_basis_points(transform) is None
 
     @pytest.mark.grpc
     def test_pad_component_reuses_only_current_capture_components(self):
-        from pyedb.viewer.adapters.grpc import _padstack_component
+        from pyedb.viewer_adapter.edb_scene import _padstack_component
 
         group = SimpleNamespace(is_null=False, edb_uid=101)
         component = object()
@@ -1909,7 +1908,7 @@ class TestCliAndTheme:
         from pyedb.viewer.__main__ import main
 
         launch = Mock()
-        monkeypatch.setattr("pyedb.viewer.launch_viewer", launch)
+        monkeypatch.setattr("pyedb.viewer_adapter.launch_viewer", launch)
         for arguments, expected in (
             (["--demo"], True),
             (["--demo", "--color-by-net"], True),

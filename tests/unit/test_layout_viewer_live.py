@@ -15,7 +15,7 @@ from layout_viewer import LayoutScene, SceneLayer, ScenePolygon
 from pyedb.grpc.database.layout_changes import layout_changes, layout_mutation, layout_session_close
 from pyedb.grpc.database.modeler import Modeler
 from pyedb.grpc.database.primitive.primitive import Primitive
-from pyedb.viewer import launch_viewer
+from pyedb.viewer_adapter import launch_viewer
 
 pytestmark = [pytest.mark.unit, pytest.mark.grpc, pytest.mark.no_licence]
 
@@ -422,7 +422,7 @@ def test_launch_forwards_live_options_and_manual_refresh_source(monkeypatch):
     assert show.call_args.kwargs["refresh_interval"] == 80
     capture = show.call_args.kwargs["loader"]
     extract = Mock(return_value=scene(1))
-    monkeypatch.setattr("pyedb.viewer.scene_from_edb", extract)
+    monkeypatch.setattr("pyedb.viewer_adapter.scene_from_edb", extract)
     capture(None)
     capture.release_source()
     capture(None)

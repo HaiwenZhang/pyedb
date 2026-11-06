@@ -1502,7 +1502,7 @@ class Edb(EdbInit):
         and bondwires are not displayed. The window does not close or save
         the EDB session. Call this method on the main GUI thread.
         """
-        from pyedb.viewer import launch_viewer
+        from pyedb.viewer_adapter import launch_viewer
 
         options = {"backend": backend} if backend is not None else {}
         if live or refresh_interval != 50:

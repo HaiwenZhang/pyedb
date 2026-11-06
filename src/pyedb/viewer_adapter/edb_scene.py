@@ -154,7 +154,7 @@ def _component_sides(edb: Edb, diagnostics: list[str], layout_layers: dict[str, 
 
 
 def _contour(primitive: Primitive, arc_segments: int, chord_error: float | None = None) -> Ring:
-    from pyedb.viewer.adapters.grpc_stream import contour_from_points
+    from pyedb.viewer_adapter.edb_geometry import contour_from_points
 
     return contour_from_points(primitive.polygon_data.points, arc_segments, chord_error)
 
@@ -292,7 +292,7 @@ def _placement(
             if transform.is_null:
                 component_cache[key] = basis, (0.0, 0.0)
             else:
-                from pyedb.viewer.adapters.grpc_stream import transform_basis_points
+                from pyedb.viewer_adapter.edb_geometry import transform_basis_points
 
                 points = transform_basis_points(transform)
                 if points is None:
@@ -1216,7 +1216,7 @@ def _primitives(
                 name = _primitive_name(primitive, primitive_type)
                 info = SceneObjectInfo(object_id, kind, net_name, name=name)
                 if kind == "trace":
-                    from pyedb.viewer.adapters.grpc_stream import trace_dimensions
+                    from pyedb.viewer_adapter.edb_geometry import trace_dimensions
 
                     try:
                         width, length = trace_dimensions(primitive)

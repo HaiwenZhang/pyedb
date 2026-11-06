@@ -70,7 +70,7 @@ def test_edb_and_cli_forward_explicit_backend(monkeypatch):
     from pyedb.viewer.__main__ import main
 
     launch = Mock(return_value="window")
-    monkeypatch.setattr("pyedb.viewer.launch_viewer", launch)
+    monkeypatch.setattr("pyedb.viewer_adapter.launch_viewer", launch)
     assert Edb.view_layout(object(), backend="vulkan") == "window"
     assert launch.call_args.kwargs["backend"] == "vulkan"
     main(["--demo", "--backend", "vulkan"])
