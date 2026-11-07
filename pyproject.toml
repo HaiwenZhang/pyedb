@@ -49,9 +49,6 @@ geometry = [
 graphics = [
     "matplotlib>=3.5.0"
 ]
-viewer = [
-    "layout-viewer",
-]
 analysis = [
     "pandas>=1.1.0",
     "scikit-rf"
@@ -128,6 +125,7 @@ compile-bytecode = true
 exclude-newer = "1 week"
 
 [tool.uv.exclude-newer-package]
+
 ansys-pythonnet = false
 ansys-sphinx-theme = false
 ansys-tools-common = false
@@ -137,10 +135,6 @@ ansys-tools-common = false
 certifi = false
 prek = false
 grpcio = false
-
-[tool.uv.sources]
-# Developed in-tree until the frontend moves to its own repository.
-layout-viewer = { path = "src/layout_viewer", editable = true }
 
 [tool.ruff]
 line-length = 120

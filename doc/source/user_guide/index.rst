@@ -53,6 +53,5 @@ For end-to-end examples, see :doc:`pyedb_examples`.
    intro
    common_tasks
    design_navigation
-   layout_viewer
    libraries/index
    security_consideration

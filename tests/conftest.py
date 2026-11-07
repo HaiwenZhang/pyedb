@@ -38,12 +38,6 @@ from pyedb.generic.settings import settings
 
 settings.enable_global_log_file = False
 
-try:
-    import layout_viewer  # noqa: F401
-except ImportError:
-    # The viewer frontend is the optional ``pyedb[viewer]`` extra; its tests need it.
-    collect_ignore_glob = ["*/test_layout_viewer*.py"]
-
 local_path = os.path.dirname(os.path.realpath(__file__))
 example_models_path = Path(__file__).parent / "example_models"
 
